@@ -2,9 +2,12 @@ package com.abzikel;
 
 import com.abzikel.pojos.Cloud;
 import com.abzikel.pojos.Saw;
+import com.abzikel.utils.CursorUtil;
 
 import javax.swing.*;
 import java.awt.*;
+import java.awt.event.MouseAdapter;
+import java.awt.event.MouseEvent;
 import java.awt.geom.AffineTransform;
 import java.awt.image.BufferedImage;
 import java.util.ArrayList;
@@ -80,6 +83,27 @@ public class GameWindow extends JFrame {
                 drawScore(g);              // Draw score
             }
         };
+
+        // Apply the normal cursor to the main panel
+        CursorUtil.applyNormalCursor(gamePanel);
+
+        // Add a mouse listener to handle click events globally in this panel
+        gamePanel.addMouseListener(new MouseAdapter() {
+            @Override
+            public void mousePressed(MouseEvent e) {
+                CursorUtil.applyClickCursor(gamePanel);
+            }
+
+            @Override
+            public void mouseReleased(MouseEvent e) {
+                Timer timer = new Timer(200, event -> {
+                    CursorUtil.applyNormalCursor(gamePanel);
+                    ((Timer) event.getSource()).stop(); // Stop the timer after execution
+                });
+                timer.setRepeats(false); // Ensure the timer runs only once
+                timer.start();
+            }
+        });
 
         // Start animations
         startAnimations(gamePanel);
@@ -332,7 +356,7 @@ public class GameWindow extends JFrame {
 
     private void setCustomCursor() {
         // Change cursor to a custom
-        String cursorPath = "/images/cursor.png";
+        String cursorPath = "/images/normal_cursor.png";
         ImageIcon cursorIcon = new ImageIcon(Objects.requireNonNull(getClass().getResource(cursorPath)));
         Image cursorImage = cursorIcon.getImage();
         Cursor customCursor = Toolkit.getDefaultToolkit().createCustomCursor(cursorImage, new Point(0, 0), "Cute Cursor");
