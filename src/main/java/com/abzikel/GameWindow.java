@@ -46,7 +46,7 @@ public class GameWindow extends JFrame {
         this.sawCount = sawCount;
 
         // Load background and sprites
-        background = loadImage("/images/game_background.png");
+        background = loadImage("/images/background_game.png");
         sawImage = loadImage("/images/saw.png");
         runSprites = loadRunSprites();
         jumpSprites = loadJumpSprites();
@@ -356,7 +356,7 @@ public class GameWindow extends JFrame {
 
     private void setCustomCursor() {
         // Change cursor to a custom
-        String cursorPath = "/images/normal_cursor.png";
+        String cursorPath = "/images/cursor_normal.png";
         ImageIcon cursorIcon = new ImageIcon(Objects.requireNonNull(getClass().getResource(cursorPath)));
         Image cursorImage = cursorIcon.getImage();
         Cursor customCursor = Toolkit.getDefaultToolkit().createCustomCursor(cursorImage, new Point(0, 0), "Cute Cursor");
