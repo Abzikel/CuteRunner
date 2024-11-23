@@ -51,12 +51,6 @@ public class Menu extends JFrame {
             }
         };
 
-        // Apply the normal cursor to the main panel
-        CursorUtil.applyNormalCursor(mainPanel);
-
-        // Add a mouse listener to handle click events globally in this panel
-        CursorUtil.addCursorBehavior(mainPanel, null, null, 200);
-
         // Grid Bag Layout to center the buttons
         mainPanel.setLayout(new GridBagLayout());
 
@@ -71,6 +65,12 @@ public class Menu extends JFrame {
 
         // Add buttons to the panel
         addButtonsToPanel(mainPanel, playButton, rulesButton, exitButton);
+
+        // Apply the normal cursor to the main panel
+        CursorUtil.applyNormalCursor(this);
+
+        // Add a mouse listener to handle click events globally in this panel
+        CursorUtil.addCursorBehavior(this, null, null, 200);
 
         // Start idle animation
         startAnimation(mainPanel);

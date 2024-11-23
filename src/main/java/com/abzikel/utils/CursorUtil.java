@@ -108,27 +108,4 @@ public class CursorUtil {
         }
     }
 
-    // Apply cursor behavior to all components in a container
-    public static void applyCursorBehaviorToOptionPane(JOptionPane optionPane, long minPressDuration) {
-        // Get all components recursively
-        for (Component component : getAllComponents(optionPane)) {
-            // Add cursor behavior to each component
-            addCursorBehavior(component, null, null, minPressDuration);
-        }
-    }
-
-    // Recursively retrieve all components within a container
-    private static List<Component> getAllComponents(Container container) {
-        // Create list of components
-        List<Component> components = new ArrayList<>();
-        for (Component component : container.getComponents()) {
-            // Add component to the list
-            components.add(component);
-            if (component instanceof Container) {
-                components.addAll(getAllComponents((Container) component));
-            }
-        }
-        return components;
-    }
-
 }
