@@ -28,6 +28,21 @@ public class Menu extends JFrame {
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         setLocationRelativeTo(null);
 
+        // Set application icon
+        setIconImage(ImageUtil.loadImage("/sprites/Idle (1).png"));
+        if (Taskbar.isTaskbarSupported()) {
+            // Get taskbar
+            Taskbar taskbar = Taskbar.getTaskbar();
+            if (taskbar.isSupported(Taskbar.Feature.ICON_IMAGE)) {
+                try {
+                    // Set application icon
+                    taskbar.setIconImage(ImageUtil.loadImage("/sprites/Idle (1).png"));
+                } catch (UnsupportedOperationException e) {
+                    System.err.println("Could not define the icon application: " + e.getMessage());
+                }
+            }
+        }
+
         // Load sprites and background image
         ImageUtil.loadSprites(idleSprites, 16, "Idle");
         background = ImageUtil.loadImage("/images/background_menu.png");
