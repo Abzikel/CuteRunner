@@ -1,0 +1,8 @@
+<component name="ArtifactManager">
+  <artifact type="jar" name="CuteRunner:jar">
+    <output-path>$PROJECT_DIR$/out/artifacts/CuteRunner_jar</output-path>
+    <root id="archive" name="CuteRunner.jar">
+      <element id="module-output" name="CuteRunner.main" />
+    </root>
+  </artifact>
+</component>

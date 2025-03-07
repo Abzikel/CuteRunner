@@ -9,7 +9,7 @@ public class ImageUtil {
 
     public static void loadSprites(List<Image> spriteList, int spriteCount, String spriteName) {
         for (int index = 1; index <= spriteCount; index++) {
-            String path = String.format("/Sprites/%s (%d).png", spriteName, index);
+            String path = String.format("/sprites/%s (%d).png", spriteName, index);
             ImageIcon icon = new ImageIcon(Objects.requireNonNull(ImageUtil.class.getResource(path)));
             spriteList.add(icon.getImage());
         }

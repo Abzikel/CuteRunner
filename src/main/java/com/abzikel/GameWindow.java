@@ -42,7 +42,7 @@ public class GameWindow extends JFrame {
         setSize(WIDTH, HEIGHT);
         setResizable(false);
         setMinimumSize(new Dimension(WIDTH, HEIGHT));
-        setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+        setDefaultCloseOperation(WindowConstants.EXIT_ON_CLOSE);
         setLocationRelativeTo(null);
 
         // Initialize obstacle count
@@ -158,7 +158,7 @@ public class GameWindow extends JFrame {
         int maxHorizontalRange = 130;
 
         // Define the safe vertical height for the character to avoid collision
-        int safeCharacterHeight = 325;
+        int safeCharacterHeight = FEET - 75;
 
         // Check each obstacle for potential collision with the character
         for (Obstacle obstacle : obstacles) {
@@ -254,7 +254,7 @@ public class GameWindow extends JFrame {
             int x = rand.nextInt(WIDTH);  // Random initial X position within the screen width
             int y = rand.nextInt(200);  // Random Y position in the upper part of the screen (0-200px)
             double scale = 0.5 + rand.nextDouble();  // Random scaling factor for the cloud size
-            double speed = 2 + rand.nextDouble(3);  // Random speed for each cloud
+            double speed = 2 + rand.nextDouble() * 3;  // Random speed for each cloud
             clouds.add(new Cloud(x, y, scale, speed));  // Add the new cloud to the list
         }
     }
@@ -273,12 +273,12 @@ public class GameWindow extends JFrame {
 
             // Draw the cloud
             g2d.setColor(new Color(255, 255, 255, 200));
-            g2d.fillOval(cloud.positionX, cloud.positionY, 100, 50);
+            g2d.fillOval(0, 0, 100, 50);
 
             // Stop movement if the game is over
             if (!isGameOver) {
                 cloud.positionX -= (int) cloud.speed;
-                if (cloud.positionX + 100 < 0) {
+                if (cloud.positionX + 200 < 0) {
                     cloud.positionX = WIDTH + 200;
                     cloud.positionY = new Random().nextInt(200);
                 }
@@ -310,7 +310,7 @@ public class GameWindow extends JFrame {
             g2d.setTransform(transform);
 
             // Draw the obstacle
-            g2d.drawImage(obstacleImage, obstacle.positionX, obstacle.positionY, this);
+            g2d.drawImage(obstacleImage, 0, 0, 75, 75, this);
 
             // Stop movement if the game is over
             if (!isGameOver) {

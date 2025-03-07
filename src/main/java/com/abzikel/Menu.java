@@ -25,23 +25,11 @@ public class Menu extends JFrame {
         setSize(WIDTH, HEIGHT);
         setResizable(false);
         setMinimumSize(new Dimension(WIDTH, HEIGHT));
-        setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+        setDefaultCloseOperation(WindowConstants.EXIT_ON_CLOSE);
         setLocationRelativeTo(null);
 
         // Set application icon
         setIconImage(ImageUtil.loadImage("/sprites/Idle (1).png"));
-        if (Taskbar.isTaskbarSupported()) {
-            // Get taskbar
-            Taskbar taskbar = Taskbar.getTaskbar();
-            if (taskbar.isSupported(Taskbar.Feature.ICON_IMAGE)) {
-                try {
-                    // Set application icon
-                    taskbar.setIconImage(ImageUtil.loadImage("/sprites/Idle (1).png"));
-                } catch (UnsupportedOperationException e) {
-                    System.err.println("Could not define the icon application: " + e.getMessage());
-                }
-            }
-        }
 
         // Load sprites and background image
         ImageUtil.loadSprites(idleSprites, 16, "Idle");
@@ -145,11 +133,9 @@ public class Menu extends JFrame {
             // Show the input dialog
             String input = JOptionPane.showInputDialog(
                     this,
-                    """
-                            To win, avoid 'x' number of obstacles.
-                            Enter 0 for infinite mode.
-    
-                            Enter the number of obstacles:""",
+                    "To win, avoid 'x' number of obstacles.\n" +
+                            "Enter 0 for infinite mode.\n\n" +
+                            "Enter the number of obstacles:",
                     "Game Rules",
                     JOptionPane.QUESTION_MESSAGE
             );
