@@ -1,8 +1,9 @@
 package com.abzikel;
 
 import com.abzikel.pojos.Cloud;
-import com.abzikel.pojos.Saw;
+import com.abzikel.pojos.Obstacle;
 import com.abzikel.utils.CursorUtil;
+import com.abzikel.utils.ImageUtil;
 
 import javax.swing.*;
 import java.awt.*;
@@ -12,53 +13,56 @@ import java.awt.geom.AffineTransform;
 import java.awt.image.BufferedImage;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Objects;
 import java.util.Random;
 
 public class GameWindow extends JFrame {
-    private final List<Image> runSprites;
-    private final List<Image> jumpSprites;
-    private final List<Image> deathSprites;
+    private static final int WIDTH = 800;
+    private static final int HEIGHT = 600;
+    private static final int GROUND = 512;
+    private static final int FEET = 400;
+    private final List<Image> runSprites = new ArrayList<>();
+    private final List<Image> jumpSprites = new ArrayList<>();
+    private final List<Image> deathSprites = new ArrayList<>();
     private final List<Cloud> clouds = new ArrayList<>();
-    private final List<Saw> saws = new ArrayList<>();
-    private final Image background, sawImage;
+    private final List<Obstacle> obstacles = new ArrayList<>();
+    private final Image background, obstacleImage;
     private TexturePaint texturePaint;
-    private final int sawCount;
-    private final int groundY;
-    private int x1, x2;
+    private final int obstacleCount;
+    private int backgroundPosition, nextBackgroundPosition;
     private int currentFrame = 0;
-    private int characterY;
+    private int characterPositionAxisY;
     private int jumpVelocity = 0;
-    private int sawsDodged = 0;
+    private int obstaclesDodged = 0;
     private boolean isJumping = false;
     private boolean isGameOver = false;
 
-    public GameWindow(int sawCount) {
+    public GameWindow(int obstacleCount) {
         // Window configuration
         setTitle("Cute Runner - Game");
-        setSize(800, 600);
+        setSize(WIDTH, HEIGHT);
         setResizable(false);
-        setMinimumSize(new Dimension(800, 600));
+        setMinimumSize(new Dimension(WIDTH, HEIGHT));
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         setLocationRelativeTo(null);
 
-        // Initialize saw count
-        this.sawCount = sawCount;
+        // Initialize obstacle count
+        this.obstacleCount = obstacleCount;
 
-        // Load background and sprites
-        background = loadImage("/images/background_game.png");
-        sawImage = loadImage("/images/saw.png");
-        runSprites = loadRunSprites();
-        jumpSprites = loadJumpSprites();
-        deathSprites = loadDeathSprites();
+        // Load images
+        background = ImageUtil.loadImage("/images/background_game.png");
+        obstacleImage = ImageUtil.loadImage("/images/obstacle.png");
+
+        // Load sprites
+        ImageUtil.loadSprites(runSprites, 20, "Run");
+        ImageUtil.loadSprites(jumpSprites, 30, "Jump");
+        ImageUtil.loadSprites(deathSprites, 30, "Dead");
 
         // Initialize character position
-        characterY = getHeight() - 200;
-        groundY = characterY;
+        characterPositionAxisY = FEET;
 
         // Set initial background positions
-        x1 = 0;
-        x2 = getWidth();
+        backgroundPosition = 0;
+        nextBackgroundPosition = WIDTH;
 
         // Create the texture to be applied over the gradient
         createTexture();
@@ -66,8 +70,8 @@ public class GameWindow extends JFrame {
         // Create initial clouds
         createClouds();
 
-        // Create saws
-        createSaws();
+        // Create obstacles
+        createObstacles();
 
         // Create and configure the main panel
         JPanel gamePanel = new JPanel() {
@@ -78,7 +82,7 @@ public class GameWindow extends JFrame {
                 drawTexturizeOverlay(g);   // Apply texture overlay
                 drawBackground(g);         // Draw ground images
                 drawClouds(g);             // Draw clouds
-                drawSaws(g);               // Draw saws
+                drawObstacles(g);          // Draw obstacles
                 drawCharacter(g);          // Draw the character
                 drawScore(g);              // Draw score
             }
@@ -137,38 +141,31 @@ public class GameWindow extends JFrame {
 
     private void updateGameObjects() {
         // Move the background to the left
-        x1 -= 5;
-        x2 -= 5;
+        backgroundPosition -= 5;
+        nextBackgroundPosition -= 5;
 
         // Reset background position when it moves out of the screen
-        if (x1 + getWidth() <= 0) x1 = x2 + getWidth();
-        if (x2 + getWidth() <= 0) x2 = x1 + getWidth();
+        if (backgroundPosition + getWidth() <= 0) backgroundPosition = nextBackgroundPosition + WIDTH;
+        if (nextBackgroundPosition + getWidth() <= 0) nextBackgroundPosition = backgroundPosition + WIDTH;
 
         // Move character
         currentFrame = (currentFrame + 1) % (isJumping ? jumpSprites.size() : runSprites.size());
-
-        // Move each saw to the left and reset when it exits the screen
-
-        for (Saw saw : saws) {
-            saw.rotation += 10; // Increase rotation
-            if (saw.rotation >= 360) saw.rotation = 0; // Reset rotation
-        }
     }
 
     private void checkCollision() {
         // Define the horizontal range where collision can occur
-        int minHorizontalRange = 50;
-        int maxHorizontalRange = 150;
+        int minHorizontalRange = 70;
+        int maxHorizontalRange = 130;
 
         // Define the safe vertical height for the character to avoid collision
         int safeCharacterHeight = 325;
 
-        // Check each saw for potential collision with the character
-        for (Saw saw : saws) {
-            // Check if the saw is within the defined horizontal range
-            if (saw.x / 2 >= minHorizontalRange && saw.x / 2 <= maxHorizontalRange) {
+        // Check each obstacle for potential collision with the character
+        for (Obstacle obstacle : obstacles) {
+            // Check if the obstacle is within the defined horizontal range
+            if (obstacle.positionX >= minHorizontalRange && obstacle.positionX <= maxHorizontalRange) {
                 // If the character is below the safe height, trigger game over
-                if (characterY > safeCharacterHeight) {
+                if (characterPositionAxisY > safeCharacterHeight) {
                     triggerGameOver(); // Stop the game on collision
                     break;
                 }
@@ -177,9 +174,9 @@ public class GameWindow extends JFrame {
     }
 
     private void checkWinCondition() {
-        if (sawCount > 0 && sawsDodged >= sawCount) {
+        if (obstacleCount > 0 && obstaclesDodged >= obstacleCount) {
             isGameOver = true;
-            showEndGameDialog("Congratulations! You won by dodging " + sawsDodged + " saws.");
+            showEndGameDialog("Congratulations! You won by dodging " + obstaclesDodged + " obstacles.");
         }
     }
 
@@ -189,7 +186,7 @@ public class GameWindow extends JFrame {
             currentFrame++;
             if (currentFrame >= deathSprites.size()) {
                 ((Timer) e.getSource()).stop();
-                showEndGameDialog("Game Over! You dodged " + sawsDodged + " saws.");
+                showEndGameDialog("Game Over! You dodged " + obstaclesDodged + " obstacles.");
             }
             repaint();
         }).start();
@@ -236,7 +233,7 @@ public class GameWindow extends JFrame {
 
     private void restartGame() {
         dispose();
-        new GameWindow(sawCount);  // Start a new game with the same saw count
+        new GameWindow(obstacleCount);  // Start a new game with the same obstacle count
     }
 
     private void returnToMenu() {
@@ -247,14 +244,14 @@ public class GameWindow extends JFrame {
     private void drawScore(Graphics g) {
         g.setFont(new Font("Arial", Font.BOLD, 24));
         g.setColor(Color.BLACK);
-        g.drawString("Saws Dodged: " + sawsDodged, 10, 30);
+        g.drawString("Obstacles Dodged: " + obstaclesDodged, 10, 30);
     }
 
     private void createClouds() {
         // Create clouds with random positions within the width of the screen
         Random rand = new Random();
         for (int index = 0; index < 20; index++) {
-            int x = rand.nextInt(getWidth() * 2);  // Random initial X position within the screen width
+            int x = rand.nextInt(WIDTH);  // Random initial X position within the screen width
             int y = rand.nextInt(200);  // Random Y position in the upper part of the screen (0-200px)
             double scale = 0.5 + rand.nextDouble();  // Random scaling factor for the cloud size
             double speed = 2 + rand.nextDouble(3);  // Random speed for each cloud
@@ -270,21 +267,20 @@ public class GameWindow extends JFrame {
 
             // Apply transformations
             AffineTransform transform = new AffineTransform();
-            transform.translate(cloud.x, cloud.y);
+            transform.translate(cloud.positionX, cloud.positionY);
             transform.scale(cloud.scale, cloud.scale);
-            transform.shear(0.1, 0);
             g2d.setTransform(transform);
 
             // Draw the cloud
             g2d.setColor(new Color(255, 255, 255, 200));
-            g2d.fillOval(0, 0, 100, 50);
+            g2d.fillOval(cloud.positionX, cloud.positionY, 100, 50);
 
-            // Stop movement if the game is over**
+            // Stop movement if the game is over
             if (!isGameOver) {
-                cloud.x -= (int) cloud.speed;
-                if (cloud.x + 100 < 0) {
-                    cloud.x = getWidth() * 2;
-                    cloud.y = new Random().nextInt(200);
+                cloud.positionX -= (int) cloud.speed;
+                if (cloud.positionX + 100 < 0) {
+                    cloud.positionX = WIDTH + 200;
+                    cloud.positionY = new Random().nextInt(200);
                 }
             }
 
@@ -294,38 +290,34 @@ public class GameWindow extends JFrame {
         originalG2D.dispose();
     }
 
-    private void createSaws() {
-        while (saws.isEmpty()) {
-            int x = getWidth() * 2 + 200; // Generate beyond screen
-            int y = getWidth() + 50; // Near the ground
-            saws.add(new Saw(x, y)); // Random speed
+    private void createObstacles() {
+        while (obstacles.isEmpty()) {
+            int positionX = WIDTH + 200; // Generate beyond screen
+            int positionY = FEET + 40; // Generate near the ground
+            obstacles.add(new Obstacle(positionX, positionY)); // Random speed
         }
     }
 
-    private void drawSaws(Graphics g) {
+    private void drawObstacles(Graphics g) {
         Graphics2D originalG2D = (Graphics2D) g.create();
 
-        for (Saw saw : saws) {
+        for (Obstacle obstacle : obstacles) {
             Graphics2D g2d = (Graphics2D) originalG2D.create();
-
-            int centerX = sawImage.getWidth(this) / 2;
-            int centerY = sawImage.getHeight(this) / 2;
 
             // Apply transformations
             AffineTransform transform = new AffineTransform();
-            transform.translate(saw.x, saw.y);
-            transform.rotate(Math.toRadians(saw.rotation), centerX, centerY);
+            transform.translate(obstacle.positionX, obstacle.positionY);
             g2d.setTransform(transform);
 
-            // Draw the saw
-            g2d.drawImage(sawImage, 0, 0, this);
+            // Draw the obstacle
+            g2d.drawImage(obstacleImage, obstacle.positionX, obstacle.positionY, this);
 
-            // Stop movement if the game is over**
+            // Stop movement if the game is over
             if (!isGameOver) {
-                saw.x -= 20;
-                if (saw.x + sawImage.getWidth(this) < 0) {
-                    saw.x = getWidth() * 3 + new Random().nextInt(getWidth());
-                    sawsDodged++;
+                obstacle.positionX -= 10;
+                if (obstacle.positionX + obstacleImage.getWidth(this) < 0) {
+                    obstacle.positionX = WIDTH + 200 + new Random().nextInt(WIDTH);
+                    obstaclesDodged++;
                 }
             }
 
@@ -341,51 +333,17 @@ public class GameWindow extends JFrame {
             isJumping = true;
             jumpVelocity = -15; // Initial jump velocity
             new Timer(20, e -> {
-                characterY += jumpVelocity;
+                characterPositionAxisY += jumpVelocity;
                 jumpVelocity += 1; // Gravity effect
 
-                if (characterY >= groundY) {
-                    characterY = groundY;
+                if (characterPositionAxisY >= FEET) {
+                    characterPositionAxisY = FEET;
                     isJumping = false; // Reset jump state
                     ((Timer) e.getSource()).stop();
                 }
                 repaint();
             }).start();
         }
-    }
-
-    private void setCustomCursor() {
-        // Change cursor to a custom
-        String cursorPath = "/images/cursor_normal.png";
-        ImageIcon cursorIcon = new ImageIcon(Objects.requireNonNull(getClass().getResource(cursorPath)));
-        Image cursorImage = cursorIcon.getImage();
-        Cursor customCursor = Toolkit.getDefaultToolkit().createCustomCursor(cursorImage, new Point(0, 0), "Cute Cursor");
-        setCursor(customCursor);
-    }
-
-    private List<Image> loadRunSprites() {
-        return loadSprites("/sprites/Run (%d).png", 20);
-    }
-
-    private List<Image> loadJumpSprites() {
-        return loadSprites("/sprites/Jump (%d).png", 30);
-    }
-
-    private List<Image> loadDeathSprites() {
-        return loadSprites("/sprites/Dead (%d).png", 30);
-    }
-
-    private Image loadImage(String path) {
-        return new ImageIcon(Objects.requireNonNull(getClass().getResource(path))).getImage();
-    }
-
-    private List<Image> loadSprites(String pathFormat, int count) {
-        List<Image> sprites = new ArrayList<>();
-        for (int i = 1; i <= count; i++) {
-            String path = String.format(pathFormat, i);
-            sprites.add(loadImage(path));
-        }
-        return sprites;
     }
 
     private void createTexture() {
@@ -419,8 +377,8 @@ public class GameWindow extends JFrame {
     }
 
     private void drawBackground(Graphics g) {
-        g.drawImage(background, x1, getHeight() - 512, getWidth(), 512, this);
-        g.drawImage(background, x2, getHeight() - 512, getWidth(), 512, this);
+        g.drawImage(background, backgroundPosition, HEIGHT - GROUND, WIDTH, GROUND, this);
+        g.drawImage(background, nextBackgroundPosition, HEIGHT - GROUND, WIDTH, GROUND, this);
     }
 
     private void drawCharacter(Graphics g) {
@@ -428,16 +386,16 @@ public class GameWindow extends JFrame {
         Image currentImage;
 
         // Check if the death sprite should be drawn
-        if (isGameOver && (sawCount == 0 || sawsDodged != sawCount)) {
+        if (isGameOver && (obstacleCount == 0 || obstaclesDodged != obstacleCount)) {
             // Use death sprite if the game is over and either in infinite mode or the player hasn't won
             currentImage = deathSprites.get(Math.min(currentFrame, deathSprites.size() - 1));
-            g.drawImage(currentImage, 100, characterY, 135, 110, this);  // Draw death sprite
+            g.drawImage(currentImage, 100, characterPositionAxisY, 135, 110, this);  // Draw death sprite
         } else {
             // Use running or jumping sprites otherwise
             currentImage = isJumping
                     ? jumpSprites.get(currentFrame % jumpSprites.size())
                     : runSprites.get(currentFrame % runSprites.size());
-            g.drawImage(currentImage, 100, characterY, 100, 100, this);  // Draw normal sprite
+            g.drawImage(currentImage, 100, characterPositionAxisY, 100, 100, this);  // Draw normal sprite
         }
     }
 

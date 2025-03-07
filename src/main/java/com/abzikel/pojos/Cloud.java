@@ -1,12 +1,12 @@
 package com.abzikel.pojos;
 
 public class Cloud {
-    public int x, y;
+    public int positionX, positionY;
     public double scale, speed;
 
-    public Cloud(int x, int y, double scale, double speed) {
-        this.x = x;
-        this.y = y;
+    public Cloud(int positionX, int positionY, double scale, double speed) {
+        this.positionX = positionX;
+        this.positionY = positionY;
         this.scale = scale;
         this.speed = speed;
     }

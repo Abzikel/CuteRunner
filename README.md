@@ -11,7 +11,7 @@
 
 1. Clone the repository:
    ```bash
-   git clone https://github.com/Abzikel/cute-runner.git
+   git clone https://github.com/Abzikel/CuteRunner.git
    ```
 2. Open the project.
 3. Ensure you have Java 8 or higher installed.

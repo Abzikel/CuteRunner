@@ -17,12 +17,13 @@ public class Menu extends JFrame {
     private final List<Image> idleSprites = new ArrayList<>();
     private final Image background;
     private int currentSpriteIndex = 0;
-    private int sawLimit = 0;
+    private int obstacleLimit = 0;
 
     public Menu() {
         // Window configuration
         setTitle("Cute Runner - Menu");
         setSize(WIDTH, HEIGHT);
+        setResizable(false);
         setMinimumSize(new Dimension(WIDTH, HEIGHT));
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         setLocationRelativeTo(null);
@@ -58,7 +59,7 @@ public class Menu extends JFrame {
         JButton playButton = createButton("btn_play", e -> {
             // Dispose window and show GameWindow
             dispose();
-            new GameWindow(sawLimit);
+            new GameWindow(obstacleLimit);
         });
         JButton rulesButton = createButton("btn_rules", e -> showRules());
         JButton exitButton = createButton("btn_exit", e -> System.exit(0));
@@ -130,10 +131,10 @@ public class Menu extends JFrame {
             String input = JOptionPane.showInputDialog(
                     this,
                     """
-                            To win, avoid 'x' number of saws.
+                            To win, avoid 'x' number of obstacles.
                             Enter 0 for infinite mode.
     
-                            Enter the number of saws:""",
+                            Enter the number of obstacles:""",
                     "Game Rules",
                     JOptionPane.QUESTION_MESSAGE
             );
@@ -147,7 +148,7 @@ public class Menu extends JFrame {
                 // Verify if the value is a number
                 int value = Integer.parseInt(input);
                 if (value >= 0) {
-                    sawLimit = value; // Store the valid number
+                    obstacleLimit = value; // Store the valid number
                     break;
                 } else {
                     // Show error message for invalid input
