@@ -1,11 +1,11 @@
 # Cute Runner
 
-**Cute Runner** is a simple infinite runner game developed in Java. The goal is to avoid obstacles, such as spinning saws, while your character runs endlessly.
+**Cute Runner** is a simple infinite runner game developed in Java. The goal is to avoid obstacles, while your character runs endlessly.
 
 ## Gameplay
 
-1. **Set the Challenge**: Select the number of saws to dodge or choose infinite mode (default).
-2. **Run and Avoid**: Guide your character to dodge the spinning saws. Use the **space bar** to jump over obstacles.
+1. **Set the Challenge**: Select the number of obstacles to dodge or choose infinite mode (default).
+2. **Run and Avoid**: Guide your character to dodge the obstacles. Use the **space bar** to jump over obstacles.
 
 ## Installation
 
