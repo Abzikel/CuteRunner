@@ -41,6 +41,10 @@ java -jar CuteRunner.jar
 2. Click on **Play** to begin the game.
 3. Click on **Rules** to set the number of obstacles or enter infinite mode (default).
 
+![Menu Screenshot](images/menu.png)
+
+![Menu Screenshot](images/game.png)
+
 ## Acknowledgments
 
 I would like to thank the following repositories for their free resources:
